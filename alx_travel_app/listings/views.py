@@ -3,8 +3,8 @@ from django.conf import settings
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Booking, Payment
-from .serializers import PaymentSerializer, BookingSerializer
+from .models import Booking, Payment, Listing
+from .serializers import PaymentSerializer, BookingSerializer, ListingSerializer
 from .tasks import send_booking_confirmation_email
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -143,6 +143,14 @@ class BookingViewSet(viewsets.ModelViewSet):
     serializer_class = BookingSerializer
 
     def perform_create(self, serializer):
-        booking = serializer.save()
+        booking = serializer.save(user=self.request.user)
         #Trigger Celery task after booking is saved
-        send_booking_confirmation_email.delay(str(booking.booking.id))
+        send_booking_confirmation_email.delay(str(booking.booking_id))
+
+
+class ListingViewSet(viewsets.ModelViewSet):
+    queryset = Listing.objects.all()
+    serializer_class = ListingSerializer
+
+    def perform_create(self, serializer):
+        listing = serializer.save()

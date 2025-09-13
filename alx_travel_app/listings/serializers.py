@@ -8,13 +8,13 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['user_id', 'role', 'email']
 
 
-class ListingSerializer(serializers.ModelSerailizer):
+class ListingSerializer(serializers.ModelSerializer):
     host = UserSerializer(read_only=True)
     host_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Listing
-        fields = ('property_id', 'name', 'description', 'location', 'price_per_night', 'created_at', 'updated_at', 'host')
+        fields = ('listing_id', 'name', 'description', 'location', 'price_per_night', 'created_at', 'updated_at', 'host', 'host_name')
         read_only_fields = ['property_id', 'created_at', 'updated_at', 'host']
 
     def get_host_name(self, obj):
@@ -23,13 +23,13 @@ class ListingSerializer(serializers.ModelSerailizer):
 
 class BookingSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    listing = ListingSerializer(read_only=True)
+    property = serializers.PrimaryKeyRelatedField(queryset=Listing.objects.all())
     user_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
-        fields = ('booking_id', 'user', 'listing', 'created_at', 'status', 'user_name')
-        read_only_fields = ['booking_id', 'user', 'listing', 'created_at']
+        fields = ('booking_id', 'user', 'property', 'created_at', 'status', 'user_name')
+        read_only_fields = ['booking_id', 'user', 'created_at']
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
